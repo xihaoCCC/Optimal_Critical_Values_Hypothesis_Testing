@@ -1,0 +1,56 @@
+---
+title: 'Determining Optimal Critical Values: Efficacy Comparison of New vs. Standard
+  Aspirin Formulations'
+date: "2/14/2022"
+output:
+  word_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(reshape2)
+library(tidyverse)
+library(pwr)
+
+```
+
+In this report, we try to identify the optimal critical value for the hypothesis 
+testing to determine whether a new formulation of aspirin is more effective than 
+the standard version. The hypothesis testing method helps us check a claim using sample data. 
+There are two parts to it: the null hypothesis, which is what we already believe, 
+and the alternative hypothesis, which is the new claim we want to test.
+
+In the given problem, we know that a regular aspirin works 60% of the time to help with headaches. A company says their new aspirin works even better. In this case, our starting belief or null hypothesis is that the new aspirin's success rate, marked as $p$, is still 60%. The new claim or alternative hypothesis says that the new aspirin is more successful, meaning $p > 0.6$.
+
+To see if the company's claim is right, we use something called a critical value. This is like a cut-off point. If we set this point too low, we might wrongly think the new aspirin works better. If we set it too high, we might not notice that it's actually better.
+
+Our goal is to find a middle point, so the chances of being wrong in both ways are less than 5%. We want our test to be powerful. In the next parts of this report, we'll try to find this cut-off point and check if the new aspirin is as good as the company says.
+
+```{r}
+m <- seq(69,73,1)
+n <- 100
+p <- seq(0.4, 1, 1/n)
+
+result <- data.frame(c(p))
+for (i in m) {
+    Power <- cumsum(dbinom(i,n,p))
+    result[,ncol(result)+1] <- Power
+    names(result)[ncol(result)] <- paste("m=",i,sep="")
+}
+
+df <- melt(result,id.vars = 'c.p.', variable.name = 'Power')
+
+```
+
+
+
+```{r}
+ggplot(df, aes(c.p.,value)) + 
+  geom_line(aes(colour = Power)) + 
+  annotate("rect", xmin=0.6, xmax=0.8, ymin=0.05, ymax=0.95, alpha=0.2, fill="red") 
+
+```
+
+The plot shows the critical values that achieve type 1 and type 2 error below 5%. The x-axis is the true population proportion, the y-axis is the probability of type 1 error, and the lines represent the results at different critical values. The curve passing through the bottom of the box means that the critical value passes our type 1 criterion, while passing through the top means it has passed our type 2 criterion. m = 69 - 73 are the only critical values able to satisfy both requirements.
